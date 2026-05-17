@@ -355,3 +355,6 @@ For issues and questions, please create an issue in the repository or contact su
 
 **Version**: 1.0.0  
 **Last Updated**: May 2026
+## 📸 Dashboard Preview
+
+![Dashboard](./public/screenshots/gymowners.png)

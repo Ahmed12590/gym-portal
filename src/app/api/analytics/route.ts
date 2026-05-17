@@ -1,13 +1,13 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { AnalyticsService } from '@/lib/services/biometric.service';
-import {
-  errorResponse,
-  successResponse,
-  withMultiTenant,
-  withRole,
-} from '@/utils/api';
+import { errorResponse, successResponse, withMultiTenant, withRole } from '@/utils/api';
 import { ApiError } from '@/types';
 
+/**
+ * =========================
+ * GYM OWNER / TENANT ANALYTICS
+ * =========================
+ */
 export const GET = withMultiTenant(
   async (request: NextRequest, gymId: string) => {
     try {
@@ -27,19 +27,13 @@ export const GET = withMultiTenant(
 
       if (type === 'attendance-trend') {
         const days = parseInt(searchParams.get('days') || '30');
-        const data = await AnalyticsService.getAttendanceTrendData(
-          gymId,
-          days
-        );
+        const data = await AnalyticsService.getAttendanceTrendData(gymId, days);
         return successResponse(data);
       }
 
       if (type === 'membership-growth') {
         const months = parseInt(searchParams.get('months') || '12');
-        const data = await AnalyticsService.getMembershipGrowthData(
-          gymId,
-          months
-        );
+        const data = await AnalyticsService.getMembershipGrowthData(gymId, months);
         return successResponse(data);
       }
 
@@ -63,24 +57,37 @@ export const GET = withMultiTenant(
   }
 );
 
-export const GET_AdminAnalytics = withRole(
+/**
+ * =========================
+ * SUPER ADMIN ANALYTICS (FIXED)
+ * =========================
+ * NOTE: Must be named GET (NOT GET_AdminAnalytics)
+ */
+export const GET_ADMIN = withRole(
   'SUPER_ADMIN',
-  async (request: NextRequest) => {
+  async () => {
     try {
       const [activeSubscriptions, expiredSubscriptions] = await Promise.all([
         AnalyticsService.getActiveSubscriptions(),
         AnalyticsService.getExpiredSubscriptions(),
       ]);
 
-      return successResponse({
+      return NextResponse.json({
         activeSubscriptions,
         expiredSubscriptions,
       });
     } catch (error) {
       if (error instanceof ApiError) {
-        return errorResponse(error.message, error.status);
+        return NextResponse.json(
+          { message: error.message },
+          { status: error.status }
+        );
       }
-      return errorResponse('Failed to fetch admin analytics', 500);
+
+      return NextResponse.json(
+        { message: 'Failed to fetch admin analytics' },
+        { status: 500 }
+      );
     }
   }
 );
