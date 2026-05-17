@@ -357,4 +357,8 @@ For issues and questions, please create an issue in the repository or contact su
 **Last Updated**: May 2026
 ## 📸 Dashboard Preview
 
-![Dashboard](./public/screenshots/gymowners.png)
+![Gymowner](./screenshots/gymowner.png)
+
+![Members](./screenshots/members.png)
+
+![SuperAdmin](./screenshots/superadmin.png)
