@@ -1,0 +1,336 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String     @id @default(cuid())
+  email    String     @unique
+  name     String?
+  password String
+  phone    String?
+  role     UserRole   @default(GYM_OWNER)
+  status   UserStatus @default(ACTIVE)
+  avatar   String?
+
+  superAdminAccount SuperAdmin?
+  gymOwnerAccount   GymOwner?
+  staffAccount      StaffMember?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  GYM_OWNER
+  STAFF_MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model SuperAdmin {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Gym {
+  id          String  @id @default(cuid())
+  name        String
+  email       String  @unique
+  phone       String
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  country     String
+  logo        String?
+  banner      String?
+  description String?
+  website     String?
+
+  status GymStatus @default(ACTIVE)
+
+  gymOwnerId String
+  owner      GymOwner @relation(fields: [gymOwnerId], references: [id], onDelete: Cascade)
+
+  branches         Branch[]
+  members          Member[]
+  staff            StaffMember[]
+  trainers         Trainer[]
+  attendance       Attendance[]
+  payments         Payment[]
+  fees             Fee[]
+  invoices         Invoice[]
+  biometricDevices BiometricDevice[]
+  notifications    Notification[]
+
+  subscription SubscriptionInstance?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum GymStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  SOFT_BLOCKED
+  HARD_BLOCKED
+}
+
+model GymOwner {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  gyms Gym[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubscriptionPlan {
+  id           String  @id @default(cuid())
+  name         String  @unique
+  description  String?
+  monthlyPrice Float
+
+  subscriptions SubscriptionInstance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubscriptionInstance {
+  id     String @id @default(cuid())
+  planId String
+
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  gymId String @unique
+  gym   Gym    @relation(fields: [gymId], references: [id])
+
+  startDate DateTime
+  endDate   DateTime
+
+  status SubscriptionStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model Branch {
+  id String @id @default(cuid())
+
+  gymId String
+  gym   Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+
+  name    String
+  address String
+  city    String
+  state   String
+  zipCode String
+  country String
+  phone   String
+  email   String?
+
+  members    Member[]
+  staff      StaffMember[]
+  trainers   Trainer[]
+  attendance Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Member {
+  id       String  @id @default(cuid())
+  gymId    String
+  branchId String?
+
+  gym    Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  firstName String
+  lastName  String
+  email     String?
+  phone     String
+
+  joinDate   DateTime
+  expiryDate DateTime
+
+  status MemberStatus @default(ACTIVE)
+
+  attendance Attendance[]
+  payments   Payment[]
+  fees       Fee[]
+  invoices   Invoice[]
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  BiometricMapping BiometricMapping[]
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+model Trainer {
+  id       String  @id @default(cuid())
+  gymId    String
+  branchId String?
+
+  gym    Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  name  String
+  phone String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StaffMember {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  gymId    String
+  branchId String?
+
+  gym    Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  position String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id String @id @default(cuid())
+
+  gymId    String
+  branchId String?
+  memberId String
+
+  gym    Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  member Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  checkInTime DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BiometricDevice {
+  id String @id @default(cuid())
+
+  gymId String
+  gym   Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+
+  name             String
+  ipAddress        String
+  BiometricMapping BiometricMapping[]
+}
+
+model BiometricMapping {
+  id String @id @default(cuid())
+
+  memberId String
+  deviceId String
+
+  member Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  device BiometricDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+}
+
+model Fee {
+  id String @id @default(cuid())
+
+  gymId    String
+  memberId String
+
+  gym    Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  amount Float
+
+  payments Payment[]
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  gymId    String
+  memberId String?
+  feeId    String?
+
+  gym    Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  member Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  fee    Fee?    @relation(fields: [feeId], references: [id], onDelete: SetNull)
+
+  amount Float
+}
+
+model Invoice {
+  id String @id @default(cuid())
+
+  gymId    String
+  memberId String?
+
+  gym    Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  member Member? @relation(fields: [memberId], references: [id])
+
+  invoiceNumber String @unique
+  totalAmount   Float
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  gymId String
+  gym   Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+
+  subject String
+  message String
+}
+
+model FeatureFlag {
+  id String @id @default(cuid())
+
+  gymId String @unique
+}
+
+model Report {
+  id String @id @default(cuid())
+
+  gymId String
+
+  month Int
+  year  Int
+}
