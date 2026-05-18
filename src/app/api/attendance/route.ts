@@ -6,7 +6,7 @@ import {
   withMultiTenant,
   getPaginationParams,
 } from '@/utils/api';
-import { ApiError, AttendanceFilterParams } from '@/types';
+import { ApiError } from '@/types';
 
 export const POST = withMultiTenant(
   async (request: NextRequest, gymId: string) => {
