@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import AdminDashboardClient from './AdminDashboardClient.tsx';
+import AdminDashboardClient from './AdminDashboardClient';
 
 export default async function AdminDashboardPage() {
   const plans = await db.subscriptionPlan.findMany({

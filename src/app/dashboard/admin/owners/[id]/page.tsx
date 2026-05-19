@@ -1,11 +1,13 @@
 import { db } from '@/lib/db';
 import Link from 'next/link';
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
 export default async function OwnerDetailPage({ params }: Props) {
+  const { id } = await params;
+
   const owner = await db.gymOwner.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { user: true, gyms: { include: { subscription: { include: { plan: true } } } } },
   });
 

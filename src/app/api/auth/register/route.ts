@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { AuthService } from '@/lib/services/auth.service';
 import { errorResponse, successResponse } from '@/utils/api';

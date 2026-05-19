@@ -2,8 +2,9 @@
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -13,7 +14,6 @@ export default function AuthErrorPage() {
     OAuthCallback: 'There was a problem with the OAuth callback.',
     OAuthCreateAccount: 'Could not create OAuth account.',
     EmailCreateAccount: 'Could not create email account.',
-    Callback: 'There was a problem during the callback.',
     EmailSignInError: 'Could not send sign in email.',
     CredentialsSignin: 'Sign in failed. Check your email and password.',
     SessionCallback: 'There was a problem with your session.',
@@ -50,5 +50,13 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }
